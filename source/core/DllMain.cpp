@@ -227,7 +227,6 @@ internal:
     static SHVDN::Console^ console = nullptr;
     static SHVDN::ScriptDomain ^domain = SHVDN::ScriptDomain::CurrentDomain;
     static array<WinForms::Keys>^ reloadKeyBinding = { WinForms::Keys::None };
-    static array<WinForms::Keys>^ consoleKeyBinding = { WinForms::Keys::F4 };
     static unsigned int scriptTimeoutThreshold = 5000;
     static bool shouldWarnOfScriptsBuiltAgainstDeprecatedApiWithTicker = true;
     static bool AutoLoadScripts = true;
@@ -497,7 +496,7 @@ static void LogKeyBindingParseError(String^ rawInput, InvalidKeysFoundError^ inv
 
 static void ScriptHookVDotNet_ManagedInit()
 {
-    SHVDN::ScriptDomain^ domain = nullptr; 
+    SHVDN::ScriptDomain^ domain = nullptr;
     SHVDN::Console^ console = nullptr;
     List<String^>^ stashedConsoleCommandHistory = gcnew List<String^>();
     List<ScriptHookVDotNet::LogMessageInfo>^ pendingLogMessageInfo = gcnew List<ScriptHookVDotNet::LogMessageInfo>();
@@ -562,20 +561,6 @@ static void ScriptHookVDotNet_ManagedInit()
                     // this lock is needed to prevent from the keyboard thread reading a stale value
                     msclr::lock l(ScriptHookVDotNet::variablesLockForMainDomain);
                     ScriptHookVDotNet::reloadKeyBinding = keyCombinationResult.Item1;
-                }
-            }
-            else if (String::Equals(keyStr, "ConsoleKeyBinding", StringComparison::OrdinalIgnoreCase))
-            {
-                keyCombinationResult = ParseKeyBinding(valueStr);
-                InvalidKeysFoundError^ invalidKeysError = keyCombinationResult.Item2;
-                if (invalidKeysError != nullptr)
-                {
-                    LogKeyBindingParseError(valueStr, invalidKeysError, pendingLogMessageInfo, ScriptHookVDotNet::consoleKeyBinding);
-                }
-                else
-                {
-                    msclr::lock l(ScriptHookVDotNet::variablesLockForMainDomain);
-                    ScriptHookVDotNet::consoleKeyBinding = keyCombinationResult.Item1;
                 }
             }
             else if (String::Equals(keyStr, "ScriptTimeoutThreshold", StringComparison::OrdinalIgnoreCase))
@@ -766,12 +751,6 @@ static void ScriptHookVDotNet_ManagedKeyboardMessage(unsigned long keycode, bool
         {
             // Force a reload
             ScriptHookVDotNet::Reload();
-            return;
-        }
-        if (keydown && AreAllKeysPressed(ScriptHookVDotNet::consoleKeyBinding))
-        {
-            // Toggle open state
-            console->IsOpen = !console->IsOpen;
             return;
         }
 
